@@ -3,7 +3,15 @@
 
 import copy
 import random
-from colorama import Fore, Back
+from colorama import Fore, Back, init
+from functools import reduce
+import numpy as np
+
+def mapReplacement(fun, iter):
+    res = []
+    for i in iter:
+        res.append(fun(i))
+    return res
 
 def reduceLineLeft(xs): 
     def aux(acc, y):
@@ -13,7 +21,7 @@ def reduceLineLeft(xs):
             acc.append(0)
         else: acc.append(y)
         return acc
-    res = filter(lambda x: x!=0, reduce(aux, filter(lambda x: x!=0, xs), []))
+    res = list(filter(lambda x: x !=0, reduce(aux, filter(lambda x: x!=0, xs), [])))
     res.extend([0 for i in range(0, len(xs)-len(res))])
     return res
 
@@ -21,22 +29,27 @@ def reduceLineRight(xs):
     return reduceLineLeft(xs[::-1])[::-1]
 
 def reduceLeft(a):
-    return map(reduceLineLeft, a)
+    
+    return mapReplacement(reduceLineLeft, a)
 
 def reduceRight(a):
-    return map(reduceLineRight, a)
+    return mapReplacement(reduceLineRight, a)
 
 def reduceUp(a):
-    return rotate(reduceLeft(rotate(a)))
-
-def reduceDown(a):
     return rotate(reduceRight(rotate(a)))
 
+def reduceDown(a):
+    return rotate(reduceLeft(rotate(a)))
+
 def rotate(a):
-    def auxset(i, j): b[j][i] = a[i][j]
-    b = newEmpty(len(a))
-    map(lambda i: map(lambda j: auxset(i, j), range(0, len(a[i]))), range(0, len(a)))
-    return b
+    rotatedt = list(reversed(list(zip(*a[::-1]))))
+    # rotated is a tuple right now, but we need it as an array
+    rotated = []
+    for t in rotatedt:
+        a = list(t)
+        rotated.append(a)
+    # print(rotated)
+    return rotated
 
 def prettyPrint(a):
     def color(x):
@@ -54,10 +67,15 @@ def prettyPrint(a):
         if x == 2048: return Fore.MAGENTA + Back.BLACK
         if x == 4096: return Fore.CYAN + Back.BLACK
         if x == 8192: return Fore.WHITE + Back.BLACK
+
+    # print out the game
+
+    text = ""
     for i in a:
         for j in i:
-            print color(j) + ("%4d" % j) + Fore.RESET + Back.RESET,
-        print
+            text += color(j) + ("%4d" % j) + Fore.RESET + Back.RESET
+        text += "\n"
+    print(text)
 
 def newEmpty(size):
     return [[0 for i in range(0, size)] for i in range(0, size)]
@@ -99,30 +117,35 @@ def randomNum(a):
     else: randomNum(a)
 
 def newGame(size):
-    print "press w to move up, a to move left, s to move down, d to move right."
-    print "press q to quit."
+    print ("press w to move up, a to move left, s to move down, d to move right.")
+    print ("press q to quit.")
     won = False
+
+    # Generate empty map
     a = newEmpty(size)
+    # add to random values
     randomInit(a)
     randomInit(a)
+    # print the map
     prettyPrint(a)
+    # start the game loop
     while True:
         b = copy.deepcopy(a)
-        key = raw_input()
+        key = input()
         if key == "w":   a = reduceUp(a)
         elif key == "a": a = reduceLeft(a)
         elif key == "s": a = reduceDown(a)
         elif key == "d": a = reduceRight(a)
         elif key == "q": break
         if a == b: 
-            print "no numbers to be reduce"
+            print ("no numbers to be reduce")
         else: randomNum(a)
         prettyPrint(a)
         if isWin(a) and not won:
-            print "You win"
+            print ("You win")
             won = True
         elif isFail(a):
-            print "You fail"
+            print ("You fail")
             break
 
 def test():
@@ -141,4 +164,6 @@ def test():
     assert reduceLineRight([2, 4, 4, 2]) == [0, 2, 8, 2]
     
 if __name__ == "__main__":
+    init()
+
     newGame(4)
