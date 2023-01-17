@@ -36,4 +36,4 @@ When you have started the game it's very straight forward from there.
 To customize the game you have to open the `config.json` file.
 When you have opened the file you can customize the colors of the tiles and much more.
 
-NOTE: Some options in the configuration file can't be reloaded with the `ctrl+r` shortcut for example the `WIDTH` and `HEIGHT` of the screen
+NOTE: Some options in the configuration file shouldn't (It will cause visual bugs) be reloaded with the `ctrl+r` shortcut for example the `WIDTH` and `HEIGHT` of the screen

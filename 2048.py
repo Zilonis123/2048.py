@@ -115,8 +115,8 @@ def randomInit(a):
 def randomNum(a):
     seed = [2, 2, 2, 4]
     x, y = randomPoint(len(a)-1)
+    v = random.randint(0, len(seed)-1)
     if a[x][y] == 0:
-        v = random.randint(0, len(seed)-1)
         a[x][y] = seed[v]
     else: randomNum(a)
 
@@ -136,6 +136,7 @@ def newGame(size):
     WIDTH = config["WIDTH"]
     HEIGHT = config["HEIGHT"]
     won = False
+    lost = 0
     MAX_FPS = 30
 
     screen = p.display.set_mode((WIDTH, HEIGHT))
@@ -146,6 +147,12 @@ def newGame(size):
 
     moves = []
     undo = False # keep the track if we undid something in this cycle
+
+    info = {
+        "score": 0,
+        "lost": 0,
+        "won": 0
+    }
    
     # start the game loop
     running = True
@@ -185,34 +192,59 @@ def newGame(size):
         if a != b and not undo:
             # if it did add a number
             randomNum(a)
-
+            # also add the score
+            info["score"] += 2
             moves.append(a)
 
-        drawScreen(screen, a, WIDTH, HEIGHT, size, config)
+        if info["lost"] < 1 and isFail(a):
+            info["lost"] += 0.05
+            # this will be used to make a cool FADING effect
+        if info["won"] < 1 and isFail(a):
+            info["won"] += 0.05
+
+        drawScreen(screen, a, config, info)
         clock.tick(MAX_FPS)
         p.display.flip()
 
-def drawScreen(screen, game, w, h, s, c):
-    drawBoard(screen, w, h, s, game, c)
+def drawScreen(screen, game, c, ginfo):
+    screen.fill(c["screen-color"])
+    drawBoard(screen, game, c, ginfo)
+    drawScore(screen, ginfo)
 
-def drawBoard(screen, w, h, size, game, config):
+def drawScore(screen, ginfo):
+    font = p.font.Font('freesansbold.ttf', 32)
+
+    # rect = p.Rect((0, 0), (150, 100))
+
+    text = font.render("Score: " + str(ginfo["score"]), True, p.Color("black"), p.Color("white"))
+    textRect = text.get_rect()
+    # textRect.center = rect.center
+
+    screen.blit(text, textRect)
+
+def drawBoard(screen, game, config, ginfo):
+    w = config["WIDTH"]
+    h = config["HEIGHT"]
+    size = len(game)
     MIDDLE = (w/2, h/2)
     # draw the background
-    width = w-50
-    height = h-50
-    loc = (MIDDLE[0]-width/2, MIDDLE[1]-height/2)
-    p.draw.rect(screen, p.Color("Orange"), p.Rect(loc, (width, height)), border_radius=10)
+    width = w-100
+    height = h-100
+    loc = (MIDDLE[0]-width/2, h-height)
+    r = p.Rect(loc, (width, height))
+    if config["show-tile-background"]:
+        p.draw.rect(screen, p.Color("Orange"), r)
 
     # font
     font = p.font.Font('freesansbold.ttf', 32)
     
     gap = 10
-    width = (width-(gap*3))/size
-    height = (height-(gap*3))/size
+    bwidth = (width-(gap*3))/size
+    bheight = (height-(gap*3))/size
     for i in range(size):
         for j in range(size):
-            l = (j*width+loc[0]+(gap*j), i*height+loc[1]+(gap*i))
-            rect = p.Rect(l, (width, height))
+            l = (j*bwidth+loc[0]+(gap*j), i*bheight+loc[1]+(gap*i))
+            rect = p.Rect(l, (bwidth, bheight))
 
             # determine the color
             color = config["colors"][str(game[i][j])]
@@ -224,12 +256,33 @@ def drawBoard(screen, w, h, size, game, config):
 
                 text = font.render(str(game[i][j]), True, fontclr, background)
 
-                
                 textRect = text.get_rect()
-
                 textRect.center = rect.center
 
                 screen.blit(text, textRect)
+
+    if ginfo["lost"] > 0 or ginfo["won"]:
+        # text
+        text = ""
+
+        s = p.Surface((width, height))  # the size of your rect
+        if ginfo["lost"] > 0:
+            s.set_alpha(128 * ginfo["lost"])               # alpha level
+            text = "Game Over!"
+        else:
+            s.set_alpha(128 * ginfo["won"])                # alpha level
+            text = "You won!"
+        s.fill((255,255,255))           # this fills the entire surface
+        screen.blit(s, loc)    # (0,0) are the top-left coordinates
+
+        f = p.font.Font("freesansbold.ttf", 32)
+        textObj = f.render(text, True, (0, 0, 0), (255, 255, 255))
+        
+        textRect = textObj.get_rect()
+        textRect.center = r.center
+
+        screen.blit(textObj, textRect)
+        
     
 if __name__ == "__main__":
     init()

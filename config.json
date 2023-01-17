@@ -1,7 +1,9 @@
 {
   "config": {
     "HEIGHT": 512,
-    "WIDTH": 1000,
+    "WIDTH": 512,
+    "screen-color": "black",
+    "show-tile-background": true,
     "colors": {
       "0": {
         "background": "gray",
