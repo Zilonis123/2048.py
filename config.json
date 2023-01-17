@@ -1,0 +1,56 @@
+{
+  "config": {
+    "HEIGHT": 512,
+    "WIDTH": 1000,
+    "colors": {
+      "0": {
+        "background": "gray",
+        "font": "black"
+      },
+      "2": {
+        "background": "lightgray",
+        "font": "#776E65"
+      },
+      "4": {
+        "background": "#EDE0C8",
+        "font": "#776E65"
+      },
+      "8": {
+        "background": "#e8bb68",
+        "font": "white"
+      },
+      "16": {
+        "background": "#db6204",
+        "font": "white"
+      },
+      "32": {
+        "background": "#db3a04",
+        "font": "white"
+      },
+      "64": {
+        "background": "#f74002",
+        "font": "white"
+      },
+      "128": {
+        "background": "#faeb78",
+        "font": "#776E65"
+      },
+      "256": {
+        "background": "#fae548",
+        "font": "#776E65"
+      },
+      "512": {
+        "background": "#2b8024",
+        "font": "whitesmoke"
+      },
+      "1024": {
+        "background": "magenta",
+        "font": "#776E65"
+      },
+      "2024": {
+        "background": "purple",
+        "font": "whitesmoke"
+      }
+    }
+  }
+}

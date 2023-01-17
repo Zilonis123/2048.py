@@ -6,6 +6,7 @@ import random
 from colorama import Fore, Back, init
 from functools import reduce
 import pygame as p
+import json
 
 def mapReplacement(fun, iter):
     res = []
@@ -104,8 +105,12 @@ def randomPoint(size):
 
 def randomInit(a):
     seed = [2, 2, 2, 4]
-    x, y = randomPoint(len(a)-1)
-    v = random.randint(0, len(seed)-1)
+    done = False
+    while not done:
+        x, y = randomPoint(len(a)-1)
+        v = random.randint(0, len(seed)-1)
+        if a[x][y] == 0:
+            done = True
     a[x][y] = seed[v]
 
 def randomNum(a):
@@ -116,8 +121,21 @@ def randomNum(a):
         a[x][y] = seed[v]
     else: randomNum(a)
 
+def makeMap(size):
+    # Generate empty map
+    a = newEmpty(size)
+    # add to random values
+    randomInit(a)
+    randomInit(a)
+    return a
+
 def newGame(size):
-    WIDTH = HEIGHT = 512
+    # load the config file
+    with open("config.json", "r", encoding="utf-8") as data_file:
+        config = json.load(data_file).get("config")
+
+    WIDTH = config["WIDTH"]
+    HEIGHT = config["HEIGHT"]
     won = False
     MAX_FPS = 30
 
@@ -125,33 +143,16 @@ def newGame(size):
     p.display.set_caption("2048")
     clock = p.time.Clock()
 
-    # Generate empty map
-    a = newEmpty(size)
-    # add to random values
-    randomInit(a)
-    randomInit(a)
-    # print the map
-    # prettyPrint(a)
+    a = makeMap(size)
+
+    moves = []
+    undo = False # keep the track if we undid something in this cycle
+   
     # start the game loop
     running = True
     while running:
+        undo = False
         b = copy.deepcopy(a)
-        # key = input()
-        # if key == "w":   a = reduceUp(a)
-        # elif key == "a": a = reduceLeft(a)
-        # elif key == "s": a = reduceDown(a)
-        # elif key == "d": a = reduceRight(a)
-        # elif key == "q": break
-        # if a == b: 
-        #     print ("no numbers to be reduce")
-        # else: randomNum(a)
-        # prettyPrint(a)
-        # if isWin(a) and not won:
-        #     print ("You win")
-        #     won = True
-        # elif isFail(a):
-        #     print ("You fail")
-        #     break
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -165,19 +166,37 @@ def newGame(size):
                     a = reduceLeft(a)
                 elif e.key == p.K_d:
                     a = reduceRight(a)
+                elif p.key.get_mods() & p.KMOD_CTRL:
+                    if e.key == p.K_r:
+                        # reload the config file
+                        print("Reloading the configuration file..")
+                        with open("config.json", "r", encoding="utf-8") as data_file:
+                            config = json.load(data_file).get("config")
+                    elif e.key == p.K_z: 
+                        # undo the move
+                        if len(moves) < 2:
+                            print("Nothing to undo..")
+                            continue;
+                        print("Undo..")
+                        moves.pop()
+                        prev = moves.pop()
+                        a = prev
+                        undo = True
         # Check if the board moved
-        if a != b:
+        if a != b and not undo:
             # if it did add a number
             randomNum(a)
 
-        drawScreen(screen, a, WIDTH, HEIGHT, size)
+            moves.append(a)
+
+        drawScreen(screen, a, WIDTH, HEIGHT, size, config)
         clock.tick(MAX_FPS)
         p.display.flip()
 
-def drawScreen(screen, game, w, h, s):
-    drawBoard(screen, w, h, s, game)
+def drawScreen(screen, game, w, h, s, c):
+    drawBoard(screen, w, h, s, game, c)
 
-def drawBoard(screen, w, h, size, game):
+def drawBoard(screen, w, h, size, game, config):
     MIDDLE = (w/2, h/2)
     # draw the background
     width = w-50
@@ -185,24 +204,26 @@ def drawBoard(screen, w, h, size, game):
     loc = (MIDDLE[0]-width/2, MIDDLE[1]-height/2)
     p.draw.rect(screen, p.Color("Orange"), p.Rect(loc, (width, height)), border_radius=10)
 
-    # draw blank squares
-    boxcolor = p.Color("gray")
-
     # font
     font = p.font.Font('freesansbold.ttf', 32)
     
     gap = 10
-    width = height = (width-(gap*3))/size
+    width = (width-(gap*3))/size
+    height = (height-(gap*3))/size
     for i in range(size):
         for j in range(size):
             l = (j*width+loc[0]+(gap*j), i*height+loc[1]+(gap*i))
             rect = p.Rect(l, (width, height))
-            p.draw.rect(screen, boxcolor, rect, border_radius=15)
+
+            # determine the color
+            color = config["colors"][str(game[i][j])]
+            background = p.Color(color["background"])
+
+            p.draw.rect(screen, background, rect, border_radius=15)
             if game[i][j] != 0:
-                white = (255, 255, 255)
-                green = (0, 255, 0)
-                blue = (0, 0, 128)
-                text = font.render(str(game[i][j]), True, green, blue)
+                fontclr = color["font"]
+
+                text = font.render(str(game[i][j]), True, fontclr, background)
 
                 
                 textRect = text.get_rect()
