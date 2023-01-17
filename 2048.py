@@ -5,7 +5,7 @@ import copy
 import random
 from colorama import Fore, Back, init
 from functools import reduce
-import numpy as np
+import pygame as p
 
 def mapReplacement(fun, iter):
     res = []
@@ -117,9 +117,13 @@ def randomNum(a):
     else: randomNum(a)
 
 def newGame(size):
-    print ("press w to move up, a to move left, s to move down, d to move right.")
-    print ("press q to quit.")
+    WIDTH = HEIGHT = 512
     won = False
+    MAX_FPS = 30
+
+    screen = p.display.set_mode((WIDTH, HEIGHT))
+    p.display.set_caption("2048")
+    clock = p.time.Clock()
 
     # Generate empty map
     a = newEmpty(size)
@@ -127,43 +131,88 @@ def newGame(size):
     randomInit(a)
     randomInit(a)
     # print the map
-    prettyPrint(a)
+    # prettyPrint(a)
     # start the game loop
-    while True:
+    running = True
+    while running:
         b = copy.deepcopy(a)
-        key = input()
-        if key == "w":   a = reduceUp(a)
-        elif key == "a": a = reduceLeft(a)
-        elif key == "s": a = reduceDown(a)
-        elif key == "d": a = reduceRight(a)
-        elif key == "q": break
-        if a == b: 
-            print ("no numbers to be reduce")
-        else: randomNum(a)
-        prettyPrint(a)
-        if isWin(a) and not won:
-            print ("You win")
-            won = True
-        elif isFail(a):
-            print ("You fail")
-            break
+        # key = input()
+        # if key == "w":   a = reduceUp(a)
+        # elif key == "a": a = reduceLeft(a)
+        # elif key == "s": a = reduceDown(a)
+        # elif key == "d": a = reduceRight(a)
+        # elif key == "q": break
+        # if a == b: 
+        #     print ("no numbers to be reduce")
+        # else: randomNum(a)
+        # prettyPrint(a)
+        # if isWin(a) and not won:
+        #     print ("You win")
+        #     won = True
+        # elif isFail(a):
+        #     print ("You fail")
+        #     break
+        for e in p.event.get():
+            if e.type == p.QUIT:
+                running = False
 
-def test():
-    assert reduceLineLeft([4, 4, 4, 4]) == [8, 8, 0, 0]
-    assert reduceLineLeft([0, 0, 0, 0]) == [0, 0, 0, 0]
-    assert reduceLineLeft([2, 0, 2, 0]) == [4, 0, 0, 0]
-    assert reduceLineLeft([2, 0, 0, 2]) == [4, 0, 0, 0]
-    assert reduceLineLeft([2, 2, 0, 2]) == [4, 2, 0, 0]
-    assert reduceLineLeft([4, 0, 2, 2]) == [4, 4, 0, 0]
-    assert reduceLineLeft([2, 0, 2, 2]) == [4, 2, 0, 0]
-    assert reduceLineLeft([2, 2, 8, 8]) == [4, 16, 0, 0]
-    assert reduceLineRight([2, 2, 0, 2]) == [0, 0, 2, 4]
-    assert reduceLineRight([0, 0, 0, 2]) == [0, 0, 0, 2]
-    assert reduceLineRight([2, 0, 0, 2]) == [0, 0, 0, 4]
-    assert reduceLineRight([4, 4, 2, 2]) == [0, 0, 8, 4]
-    assert reduceLineRight([2, 4, 4, 2]) == [0, 2, 8, 2]
+            if e.type == p.KEYDOWN:
+                if e.key == p.K_w:
+                    a = reduceUp(a)
+                elif e.key == p.K_s:
+                    a = reduceDown(a)
+                elif e.key == p.K_a:
+                    a = reduceLeft(a)
+                elif e.key == p.K_d:
+                    a = reduceRight(a)
+        # Check if the board moved
+        if a != b:
+            # if it did add a number
+            randomNum(a)
+
+        drawScreen(screen, a, WIDTH, HEIGHT, size)
+        clock.tick(MAX_FPS)
+        p.display.flip()
+
+def drawScreen(screen, game, w, h, s):
+    drawBoard(screen, w, h, s, game)
+
+def drawBoard(screen, w, h, size, game):
+    MIDDLE = (w/2, h/2)
+    # draw the background
+    width = w-50
+    height = h-50
+    loc = (MIDDLE[0]-width/2, MIDDLE[1]-height/2)
+    p.draw.rect(screen, p.Color("Orange"), p.Rect(loc, (width, height)), border_radius=10)
+
+    # draw blank squares
+    boxcolor = p.Color("gray")
+
+    # font
+    font = p.font.Font('freesansbold.ttf', 32)
+    
+    gap = 10
+    width = height = (width-(gap*3))/size
+    for i in range(size):
+        for j in range(size):
+            l = (j*width+loc[0]+(gap*j), i*height+loc[1]+(gap*i))
+            rect = p.Rect(l, (width, height))
+            p.draw.rect(screen, boxcolor, rect, border_radius=15)
+            if game[i][j] != 0:
+                white = (255, 255, 255)
+                green = (0, 255, 0)
+                blue = (0, 0, 128)
+                text = font.render(str(game[i][j]), True, green, blue)
+
+                
+                textRect = text.get_rect()
+
+                textRect.center = rect.center
+
+                screen.blit(text, textRect)
     
 if __name__ == "__main__":
     init()
+    p.init()
 
     newGame(4)
