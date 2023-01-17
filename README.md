@@ -32,6 +32,8 @@ When you have started the game it's very straight forward from there.
 `ctrl+z` - Undo the previous move
 
 `ctrl+r` - Reload the configuration file
+
+`ctrl+p` - Restart the game
 ## How to customize the feel
 To customize the game you have to open the `config.json` file.
 When you have opened the file you can customize the colors of the tiles and much more.

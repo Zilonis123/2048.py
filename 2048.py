@@ -135,8 +135,6 @@ def newGame(size):
 
     WIDTH = config["WIDTH"]
     HEIGHT = config["HEIGHT"]
-    won = False
-    lost = 0
     MAX_FPS = 30
 
     screen = p.display.set_mode((WIDTH, HEIGHT))
@@ -171,7 +169,7 @@ def newGame(size):
                 elif e.key == p.K_a:
                     a = reduceLeft(a)
                 elif e.key == p.K_d:
-                    a = reduceRight(a)
+                    a = reduceRight(a)            
                 elif p.key.get_mods() & p.KMOD_CTRL:
                     if e.key == p.K_r:
                         # reload the config file
@@ -186,8 +184,17 @@ def newGame(size):
                         print("Undo..")
                         moves.pop()
                         prev = moves.pop()
+                        info["lost"] = 0
+                        info["won"] = 0
                         a = prev
                         undo = True
+                    elif e.key == p.K_p:
+                        info["lost"] = 0
+                        info["won"] = 0
+                        info["score"] = 0
+                        undo = True # Set undo to true so the game doesn't decide that the user moved
+                        moves = []
+                        a = makeMap(size)
         # Check if the board moved
         if a != b and not undo:
             # if it did add a number
