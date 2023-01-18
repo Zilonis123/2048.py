@@ -231,7 +231,8 @@ def newGame(size):
         # Check if the board moved
         if a != b and not undo:
             # if it did add a number
-            info["score"] += randomNum(a)
+            if config["give-points-for-turn"]:
+                info["score"] += randomNum(a)
            
             info["score"] += calculatePoints(a, b)
             moves.append(a)

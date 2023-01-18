@@ -4,6 +4,7 @@
     "WIDTH": 512,
     "screen-color": "black",
     "show-tile-background": true,
+    "give-points-for-turn": true,
     "colors": {
       "0": {
         "background": "gray",
