@@ -7,11 +7,38 @@ from functools import reduce
 import pygame as p
 import json
 
+
 def mapReplacement(fun, iter):
     res = []
     for i in iter:
         res.append(fun(i))
     return res
+
+def calculatePoints(a, b):
+    s = 0
+    tb = b
+    ta = a
+    for l in range(3):
+        for k in range(len(tb)):
+            for i in range(len(ta[k])):
+                if ta[i] == 0:
+                    continue;
+                item = ta[k][i]
+                # print(item)
+                for j in range(len(tb[k])):
+                    if tb[k][j] < 2:
+                        continue
+                    if tb[k][j] == item//2:
+                        if len(tb) != j+1 and tb[k][j+1] == item//2:
+                            # add score
+                            s += item//4
+                            tb[k][j] == 0
+                            tb[k][j+1] == 0
+                            break;
+        tb = rotate(tb)
+        ta = rotate(ta)
+
+    return s
 
 def reduceLineLeft(xs): 
     def aux(acc, y):
@@ -23,6 +50,7 @@ def reduceLineLeft(xs):
         return acc
     res = list(filter(lambda x: x !=0, reduce(aux, filter(lambda x: x!=0, xs), [])))
     res.extend([0 for i in range(0, len(xs)-len(res))])
+    
     return res
 
 def reduceLineRight(xs):
@@ -114,11 +142,15 @@ def randomInit(a):
 
 def randomNum(a):
     seed = [2, 2, 2, 4]
-    x, y = randomPoint(len(a)-1)
     v = random.randint(0, len(seed)-1)
-    if a[x][y] == 0:
-        a[x][y] = seed[v]
-    else: randomNum(a)
+    done = False
+    while not done:
+        x, y = randomPoint(len(a)-1)
+        if a[x][y] == 0:
+            a[x][y] = seed[v]
+            done = True
+
+    return seed[v]
 
 def makeMap(size):
     # Generate empty map
@@ -149,7 +181,7 @@ def newGame(size):
     info = {
         "score": 0,
         "lost": 0,
-        "won": 0
+        "won": 0,
     }
    
     # start the game loop
@@ -186,6 +218,7 @@ def newGame(size):
                         prev = moves.pop()
                         info["lost"] = 0
                         info["won"] = 0
+                        info["score"] = calculatePoints(prev)
                         a = prev
                         undo = True
                     elif e.key == p.K_p:
@@ -198,9 +231,9 @@ def newGame(size):
         # Check if the board moved
         if a != b and not undo:
             # if it did add a number
-            randomNum(a)
-            # also add the score
-            info["score"] += 2
+            info["score"] += randomNum(a)
+           
+            info["score"] += calculatePoints(a, b)
             moves.append(a)
 
         if info["lost"] < 1 and isFail(a):
