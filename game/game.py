@@ -10,14 +10,15 @@ def mapReplacement(fun, iter):
     return res
 
 class Game():
-    def __init__(self, size):
+    def __init__(self, size, graduallyIncrease=False):
         self.size = size
         self.score = 0
         self.lost = 0
         self.won = 0
         self.map = self.makeMap(self.size)
+        self.graduallyIncrease = graduallyIncrease
 
-        self.moves = [Move(self.newEmptyMap(self.size), self.map, score=0)] # initalize the moves
+        self.moves = [] # initalize the moves
 
     def getAllLegalMoves(self, map):
         func = [self.reduceLeft, self.reduceRight, self.reduceUp, self.reduceDown]
@@ -26,23 +27,24 @@ class Game():
 
         for legal in func:
             movedone = legal(self.map)
-            self.undoMove()
+            self.undoMove(True)
             if mapbefore != movedone.map:
                 legalmoves.append(legal)
 
         return legalmoves
 
 
-    def undoMove(self):
+    def undoMove(self, dontremovescore=False):
         if len(self.moves) <= 0:
             return
         m = self.moves.pop() # get the move to undo and remove it
 
         # set the variables back what they were
-        self.score -= m.calculatePoints()
+        if not dontremovescore:
+            self.score -= m.calculatePoints()
         self.lost = 0
         self.won = 0
-        self.map = m.map
+        self.map = m.prevmap
     
     def makeMap(self, size):
         map = self.newEmptyMap(size)
@@ -63,10 +65,19 @@ class Game():
                 done = True
         map[x][y] = seed[v]
 
+    def giveScoreForMove(self, move):
+        self.score += move.calculatePoints()
+
     def randomPoint(self, size):
         x = random.randint(0, size)
         y = random.randint(0, size)
         return (x-1, y-1)
+
+    def moveBoard(self, func):
+        m = func(self.map)
+        if m.prevmap != m.map:
+            self.randomInt(self.map)
+        return m
 
     def _reduceLineLeft(self, xs): 
         def aux(acc, y):
@@ -87,31 +98,37 @@ class Game():
     def reduceLeft(self, a):
         b = mapReplacement(self._reduceLineLeft, a)
         m = Move(a, b)
+        self.map = m.map
         self.moves.append(m)
         return m
 
     def reduceRight(self, a):
         b = mapReplacement(self._reduceLineRight, a)
         m = Move(a, b)
+        self.map = m.map
         self.moves.append(m)
         return m
 
     def reduceUp(self, a):
         map = self.reduceRight(self.rotate(a)).map
-        self.undoMove()
+        self.map = map
+        self.undoMove(True)
 
         b = self.rotate(map)
         m = Move(a, b)
+        self.map = m.map
         self.moves.append(m)
         return m
 
     def reduceDown(self, a):
         map = self.reduceLeft(self.rotate(a)).map
-        self.undoMove()
+        self.map = map
+        self.undoMove(True)
 
         b = self.rotate(map)
 
         m = Move(a, b)
+        self.map = m.map
         self.moves.append(m)
         return m
 
@@ -127,15 +144,23 @@ class Game():
 
 
     def isWin(self, a):
-        return self._traverse(a, lambda x: x == 2048)
+        win = self._traverse(a, lambda x: x == 2048)
+        if win:
+            if self.graduallyIncrease:
+                self.won += 0.1
+            else:
+                self.won = 1
+        return self.won
 
     def isFail(self, a):
-        def aux(a):
-            for i in a:
-                for j in zip(i, i[1:]):
-                    if j[0] == 0 or j[1] == 0 or j[0] == j[1]: return False
-            return True
-        return aux(a) and aux(self.rotate(a))
+        legal = self.getAllLegalMoves(a)
+        if len(legal) == 0:
+            print(self.lost)
+            if self.graduallyIncrease:
+                self.lost += 0.1
+            else:
+                self.lost = 1
+        return self.lost
         
     def _traverse(self, a, f):
         for line in a:

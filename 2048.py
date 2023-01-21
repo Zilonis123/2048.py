@@ -1,7 +1,6 @@
 #coding=utf8
 
 import copy
-import random
 from colorama import Fore, Back, init
 import pygame as p
 import json
@@ -51,36 +50,31 @@ def newGame(size):
     p.display.set_caption("2048")
     clock = p.time.Clock()
 
-    a = makeMap(size)
+    g = game.Game(size, True)
 
-    moves = []
     undo = False # keep the track if we undid something in this cycle
-
-    info = {
-        "score": 0,
-        "lost": 0,
-        "won": 0,
-    }
    
     # start the game loop
     running = True
     while running:
+        # make an empty move
+        move = game.Move(g.map, g.map)
         undo = False
-        b = copy.deepcopy(a)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
 
             if e.type == p.KEYDOWN:
-                if e.key == p.K_w:
-                    a = reduceUp(a)
-                elif e.key == p.K_s:
-                    a = reduceDown(a)
-                elif e.key == p.K_a:
-                    a = reduceLeft(a)
-                elif e.key == p.K_d:
-                    a = reduceRight(a)            
-                elif p.key.get_mods() & p.KMOD_CTRL:
+                if g.lost <= 0:
+                    if e.key == p.K_w:
+                        move = g.moveBoard(g.reduceUp)
+                    elif e.key == p.K_s:
+                        move = g.moveBoard(g.reduceDown)
+                    elif e.key == p.K_a:
+                        move = g.moveBoard(g.reduceLeft)
+                    elif e.key == p.K_d:
+                        move = g.moveBoard(g.reduceRight)         
+                if p.key.get_mods() & p.KMOD_CTRL:
                     if e.key == p.K_r:
                         # reload the config file
                         print("Reloading the configuration file..")
@@ -88,63 +82,44 @@ def newGame(size):
                             config = json.load(data_file).get("config")
                     elif e.key == p.K_z: 
                         # undo the move
-                        if len(moves) < 2:
+                        if len(g.moves) < 1:
                             print("Nothing to undo..")
                             continue;
-                        print("Undo..")
-                        moves.pop()
-                        prev = moves.pop()
-                        info["lost"] = 0
-                        info["won"] = 0
-                        info["score"] = calculatePoints(prev)
-                        a = prev
-                        undo = True
+                        g.undoMove()
                     elif e.key == p.K_p:
-                        info["lost"] = 0
-                        info["won"] = 0
-                        info["score"] = 0
+                        g = game.Game(size)
                         undo = True # Set undo to true so the game doesn't decide that the user moved
-                        moves = []
-                        a = makeMap(size)
         # Check if the board moved
-        if a != b and not undo:
-            # if it did add a number
-            if config["give-points-for-turn"]:
-                info["score"] += randomNum(a)
-           
-            info["score"] += calculatePoints(a, b)
-            moves.append(a)
+        if move and move.prevmap != move.map and not undo:
+            g.giveScoreForMove(move)
 
-        if info["lost"] < 1 and isFail(a):
-            info["lost"] += 0.05
-            # this will be used to make a cool FADING effect
-        if info["won"] < 1 and isFail(a):
-            info["won"] += 0.05
+        # check/update if won/lost
+        g.isFail(g.map)
+        g.isWin(g.map)
 
-        drawScreen(screen, a, config, info)
+        drawScreen(screen, g, config)
         clock.tick(MAX_FPS)
         p.display.flip()
 
-def drawScreen(screen, game, c, ginfo):
+def drawScreen(screen, g, c):
     screen.fill(c["screen-color"])
-    drawBoard(screen, game, c, ginfo)
-    drawScore(screen, ginfo)
+    drawBoard(screen, g, c)
+    drawScore(screen, g)
 
-def drawScore(screen, ginfo):
+def drawScore(screen, g):
     font = p.font.Font('freesansbold.ttf', 32)
 
     # rect = p.Rect((0, 0), (150, 100))
 
-    text = font.render("Score: " + str(ginfo["score"]), True, p.Color("black"), p.Color("white"))
+    text = font.render("Score: " + str(g.score), True, p.Color("black"), p.Color("white"))
     textRect = text.get_rect()
     # textRect.center = rect.center
 
     screen.blit(text, textRect)
 
-def drawBoard(screen, game, config, ginfo):
+def drawBoard(screen, g, config):
     w = config["WIDTH"]
     h = config["HEIGHT"]
-    size = len(game)
     MIDDLE = (w/2, h/2)
     # draw the background
     width = w-100
@@ -158,38 +133,38 @@ def drawBoard(screen, game, config, ginfo):
     font = p.font.Font('freesansbold.ttf', 32)
     
     gap = 10
-    bwidth = (width-(gap*3))/size
-    bheight = (height-(gap*3))/size
-    for i in range(size):
-        for j in range(size):
+    bwidth = (width-(gap*3))/g.size
+    bheight = (height-(gap*3))/g.size
+    for i in range(g.size):
+        for j in range(g.size):
             l = (j*bwidth+loc[0]+(gap*j), i*bheight+loc[1]+(gap*i))
             rect = p.Rect(l, (bwidth, bheight))
 
             # determine the color
-            color = config["colors"][str(game[i][j])]
+            color = config["colors"][str(g.map[i][j])]
             background = p.Color(color["background"])
 
             p.draw.rect(screen, background, rect, border_radius=15)
-            if game[i][j] != 0:
+            if g.map[i][j] != 0:
                 fontclr = color["font"]
 
-                text = font.render(str(game[i][j]), True, fontclr, background)
+                text = font.render(str(g.map[i][j]), True, fontclr, background)
 
                 textRect = text.get_rect()
                 textRect.center = rect.center
 
                 screen.blit(text, textRect)
 
-    if ginfo["lost"] > 0 or ginfo["won"]:
+    if g.lost > 0 or g.won > 0:
         # text
         text = ""
 
         s = p.Surface((width, height))  # the size of your rect
-        if ginfo["lost"] > 0:
-            s.set_alpha(128 * ginfo["lost"])               # alpha level
+        if g.lost > 0:
+            s.set_alpha(128 * g.lost)               # alpha level
             text = "Game Over!"
         else:
-            s.set_alpha(128 * ginfo["won"])                # alpha level
+            s.set_alpha(128 * g.won)                # alpha level
             text = "You won!"
         s.fill((255,255,255))           # this fills the entire surface
         screen.blit(s, loc)    # (0,0) are the top-left coordinates
@@ -207,6 +182,4 @@ if __name__ == "__main__":
     init()
     p.init()
 
-    # newGame(4)
-    a = game.Game(4)
-    prettyPrint(a.map)
+    newGame(4)
