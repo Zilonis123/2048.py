@@ -1,10 +1,12 @@
 #coding=utf8
 
-import copy
+from time import sleep, time
 from colorama import Fore, Back, init
 import pygame as p
 import json
 from game import game
+from game import ai
+
 
 
 def prettyPrint(a):
@@ -58,8 +60,24 @@ def newGame(size):
     running = True
     while running:
         # make an empty move
-        move = game.Move(g.map, g.map)
+        move = game.Move(g.map, g.map, g.reduceLeft)
         undo = False
+
+        # st = time()
+        # s, move = ai.getBestMove(g)
+        # et = time()
+        # elapsed_time = et-st
+        # if g.lost != 1:
+        #     print("Elapsed time " + str(elapsed_time) + "ms with score " + str(s))
+
+        # if move != 0:
+        #     g.moveBoard(move.func)
+        # else:
+        #     v = g.getAllLegalMoves(g.map)
+        #     for i in v:
+        #         g.moveBoard(i)
+        
+                
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -97,13 +115,13 @@ def newGame(size):
         g.isFail(g.map)
         g.isWin(g.map)
 
-        drawScreen(screen, g, config)
+        drawScreen(screen, g, config, move)
         clock.tick(MAX_FPS)
         p.display.flip()
 
-def drawScreen(screen, g, c):
+def drawScreen(screen, g, c, m):
     screen.fill(c["screen-color"])
-    drawBoard(screen, g, c)
+    drawBoard(screen, g, c, m)
     drawScore(screen, g)
 
 def drawScore(screen, g):
@@ -117,7 +135,7 @@ def drawScore(screen, g):
 
     screen.blit(text, textRect)
 
-def drawBoard(screen, g, config):
+def drawBoard(screen, g, config, move):
     w = config["WIDTH"]
     h = config["HEIGHT"]
     MIDDLE = (w/2, h/2)
@@ -135,20 +153,22 @@ def drawBoard(screen, g, config):
     gap = 10
     bwidth = (width-(gap*3))/g.size
     bheight = (height-(gap*3))/g.size
+
+    map = move.compressMap()
     for i in range(g.size):
         for j in range(g.size):
             l = (j*bwidth+loc[0]+(gap*j), i*bheight+loc[1]+(gap*i))
             rect = p.Rect(l, (bwidth, bheight))
 
             # determine the color
-            color = config["colors"][str(g.map[i][j])]
+            color = config["colors"][str(map[i][j])]
             background = p.Color(color["background"])
 
             p.draw.rect(screen, background, rect, border_radius=15)
             if g.map[i][j] != 0:
                 fontclr = color["font"]
 
-                text = font.render(str(g.map[i][j]), True, fontclr, background)
+                text = font.render(str(map[i][j]), True, fontclr, background)
 
                 textRect = text.get_rect()
                 textRect.center = rect.center
