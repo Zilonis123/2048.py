@@ -55,12 +55,14 @@ class Game():
     def newEmptyMap(self, size):
         return [[0 for i in range(0, size)] for i in range(0, size)]
     
-    def randomInt(self, map):
+    def randomInt(self, map, op=-1):
         seed = [2, 2, 2, 4]
         done = False
+        v = op
         while not done:
             x, y = self.randomPoint(self.size)
-            v = random.randint(0, len(seed)-1)
+            if op != -1:
+                v = random.randint(0, len(seed)-1)
             if map[x][y] == 0:
                 done = True
         map[x][y] = seed[v]
@@ -73,10 +75,10 @@ class Game():
         y = random.randint(0, size)
         return (x-1, y-1)
 
-    def moveBoard(self, func):
+    def moveBoard(self, func, op=-1):
         m = func(self.map)
         if m.prevmap != m.map:
-            self.randomInt(self.map)
+            self.randomInt(self.map, op)
         return m
 
     def _reduceLineLeft(self, xs): 
@@ -97,14 +99,14 @@ class Game():
 
     def reduceLeft(self, a):
         b = mapReplacement(self._reduceLineLeft, a)
-        m = Move(a, b)
+        m = Move(a, b, self.reduceLeft)
         self.map = m.map
         self.moves.append(m)
         return m
 
     def reduceRight(self, a):
         b = mapReplacement(self._reduceLineRight, a)
-        m = Move(a, b)
+        m = Move(a, b, self.reduceRight)
         self.map = m.map
         self.moves.append(m)
         return m
@@ -115,7 +117,7 @@ class Game():
         self.undoMove(True)
 
         b = self.rotate(map)
-        m = Move(a, b)
+        m = Move(a, b, self.reduceUp)
         self.map = m.map
         self.moves.append(m)
         return m
@@ -127,7 +129,7 @@ class Game():
 
         b = self.rotate(map)
 
-        m = Move(a, b)
+        m = Move(a, b, self.reduceDown)
         self.map = m.map
         self.moves.append(m)
         return m
@@ -155,10 +157,9 @@ class Game():
     def isFail(self, a):
         legal = self.getAllLegalMoves(a)
         if len(legal) == 0:
-            print(self.lost)
-            if self.graduallyIncrease:
-                self.lost += 0.1
-            else:
+            # if self.graduallyIncrease:
+            #     self.lost += 0.1
+            # else:
                 self.lost = 1
         return self.lost
         
@@ -169,10 +170,11 @@ class Game():
         return False
 
 class Move():
-    def __init__(self, prevmap, map, score=-69420):
+    def __init__(self, prevmap, map, func, score=-69420):
         self.prevmap = prevmap
         self.map = map
         self._score = score;
+        self.func = func
         pass
 
     def calculatePoints(self):

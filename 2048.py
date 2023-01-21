@@ -1,10 +1,12 @@
 #coding=utf8
 
-import copy
+from time import sleep, time
 from colorama import Fore, Back, init
 import pygame as p
 import json
 from game import game
+from game import ai
+
 
 
 def prettyPrint(a):
@@ -58,8 +60,24 @@ def newGame(size):
     running = True
     while running:
         # make an empty move
-        move = game.Move(g.map, g.map)
+        # move = game.Move(g.map, g.map)
         undo = False
+
+        st = time()
+        s, move = ai.getBestMove(g)
+        et = time()
+        elapsed_time = et-st
+        if g.lost != 1:
+            print("Elapsed time " + str(elapsed_time) + "ms with score " + str(s))
+
+        if move != 0:
+            g.moveBoard(move.func)
+        else:
+            v = g.getAllLegalMoves(g.map)
+            for i in v:
+                g.moveBoard(i)
+        
+                
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
