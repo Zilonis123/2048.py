@@ -2,12 +2,21 @@
 
 from time import sleep, time
 from colorama import Fore, Back, init
+from functools import reduce
 import pygame as p
 import json
+<<<<<<< HEAD
 from game import game
 from game import ai
 
+=======
+>>>>>>> parent of 2d4999f (:white_check_mark: Added game directory)
 
+def mapReplacement(fun, iter):
+    res = []
+    for i in iter:
+        res.append(fun(i))
+    return res
 
 def prettyPrint(a):
     def color(x):
@@ -38,6 +47,133 @@ def prettyPrint(a):
 def newEmpty(size):
     return [[0 for i in range(0, size)] for i in range(0, size)]
 
+
+
+
+def randomNum(a):
+    seed = [2, 2, 2, 4]
+    v = random.randint(0, len(seed)-1)
+    done = False
+    while not done:
+        x, y = randomPoint(len(a)-1)
+        if a[x][y] == 0:
+            a[x][y] = seed[v]
+            done = True
+
+    return seed[v]
+
+class Game():
+    def __init__(self, size):
+        self.size = size
+        self.score = 0
+        self.lost = 0
+        self.won = 0
+        self.map = self.makeMap(self.size)
+    
+    def makeMap(self, size):
+        map = self.newEmptyMap(size)
+        self.randomInt(map)
+        self.randomInt(map)
+        return map
+
+    def newEmptyMap(self, size):
+        return [[0 for i in range(0, size)] for i in range(0, size)]
+    
+    def randomInt(self, map):
+        seed = [2, 2, 2, 4]
+        done = False
+        while not done:
+            x, y = self.randomPoint(self.size)
+            v = random.randint(0, len(seed)-1)
+            if map[x][y] == 0:
+                done = True
+        map[x][y] = seed[v]
+
+    def randomPoint(self, size):
+        x = random.randint(0, size)
+        y = random.randint(0, size)
+        return (x-1, y-1)
+
+    def _reduceLineLeft(self, xs): 
+        def aux(acc, y):
+            if len(acc) == 0: acc.append(y)
+            elif acc[len(acc)-1] == y:
+                acc[len(acc)-1] = y * 2
+                acc.append(0)
+            else: acc.append(y)
+            return acc
+        res = list(filter(lambda x: x !=0, reduce(aux, filter(lambda x: x!=0, xs), [])))
+        
+        res.extend([0 for i in range(0, len(xs)-len(res))])
+        return res
+
+    def _reduceLineRight(self, xs):
+        return self._reduceLineLeft(xs[::-1])[::-1]
+
+    def reduceLeft(self, a):
+        return mapReplacement(self._reduceLineLeft, a)
+
+    def reduceRight(self, a):
+        return mapReplacement(self._reduceLineRight, a)
+
+    def reduceUp(self, a):
+        return self.rotate(self.reduceRight(self.rotate(a)))
+
+    def reduceDown(self, a):
+        return self.rotate(self.reduceLeft(self.rotate(a)))
+
+    def rotate(self, a):
+        rotatedt = list(reversed(list(zip(*a[::-1]))))
+        # rotated is a tuple right now, but we need it as an array
+        rotated = []
+        for t in rotatedt:
+            a = list(t)
+            rotated.append(a)
+        # print(rotated)
+        return rotated
+
+    def calculatePoints(self, a, b):
+        s = 0
+        tb = b
+        ta = a
+        for l in range(3):
+            for k in range(len(tb)):
+                for i in range(len(ta[k])):
+                    if ta[i] == 0:
+                        continue;
+                    item = ta[k][i]
+                    # print(item)
+                    for j in range(len(tb[k])):
+                        if tb[k][j] < 2:
+                            continue
+                        if tb[k][j] == item//2:
+                            if len(tb) != j+1 and tb[k][j+1] == item//2:
+                                # add score
+                                s += item//4
+                                tb[k][j] == 0
+                                tb[k][j+1] == 0
+                                break;
+            tb = self.rotate(tb)
+            ta = self.rotate(ta)
+
+        return s
+
+    def isWin(self, a):
+        return self._traverse(a, lambda x: x == 2048)
+
+    def isFail(self, a):
+        def aux(a):
+            for i in a:
+                for j in zip(i, i[1:]):
+                    if j[0] == 0 or j[1] == 0 or j[0] == j[1]: return False
+            return True
+        return aux(a) and aux(self.rotate(a))
+        
+    def _traverse(self, a, f):
+        for line in a:
+            for ele in line:
+                if f(ele): return True
+        return False
 
 def newGame(size):
     # load the config file
@@ -202,4 +338,10 @@ if __name__ == "__main__":
     init()
     p.init()
 
+<<<<<<< HEAD
     newGame(4)
+=======
+    # newGame(4)
+    a = Game(4)
+    print(a.map)
+>>>>>>> parent of 2d4999f (:white_check_mark: Added game directory)
