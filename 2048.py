@@ -6,13 +6,6 @@ from functools import reduce
 import pygame as p
 import json
 from game import game
-from game import ai
-
-def mapReplacement(fun, iter):
-    res = []
-    for i in iter:
-        res.append(fun(i))
-    return res
 
 def prettyPrint(a):
     def color(x):
@@ -192,40 +185,8 @@ def newGame(size):
     running = True
     while running:
         # make an empty move
-        move = game.Move(g.map, g.map, g.reduceLeft)
         undo = False
-
-        # st = time()
-        # s, move = ai.getBestMove(g)
-        # et = time()
-        # elapsed_time = et-st
-        # if g.lost != 1:
-        #     print("Elapsed time " + str(elapsed_time) + "ms with score " + str(s))
-
-        # if move != 0:
-        #     g.moveBoard(move.func)
-        # else:
-        #     v = g.getAllLegalMoves(g.map)
-        #     for i in v:
-        #         g.moveBoard(i)
-        # move = game.Move(g.map, g.map)
-        undo = False
-
-        st = time()
-        s, move = ai.getBestMove(g)
-        et = time()
-        elapsed_time = et-st
-        if g.lost != 1:
-            print("Elapsed time " + str(elapsed_time) + "ms with score " + str(s))
-
-        if move != 0:
-            g.moveBoard(move.func)
-        else:
-            v = g.getAllLegalMoves(g.map)
-            for i in v:
-                g.moveBoard(i)
         move = game.Move(g.map, g.map)
-        undo = False
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -350,6 +311,4 @@ if __name__ == "__main__":
     init()
     p.init()
 
-    # newGame(4)
-    a = Game(4)
-    print(a.map)
+    newGame(4)
