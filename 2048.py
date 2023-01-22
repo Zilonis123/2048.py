@@ -1,20 +1,12 @@
 #coding=utf8
 
-from time import sleep, time
+import random
 from colorama import Fore, Back, init
 from functools import reduce
 import pygame as p
 import json
-<<<<<<< HEAD
 from game import game
 from game import ai
-<<<<<<< HEAD
-=======
-
->>>>>>> 6c5c215361e6e6c01e34837efd023cb557d3acf8
-
-=======
->>>>>>> parent of 2d4999f (:white_check_mark: Added game directory)
 
 def mapReplacement(fun, iter):
     res = []
@@ -200,7 +192,6 @@ def newGame(size):
     running = True
     while running:
         # make an empty move
-<<<<<<< HEAD
         move = game.Move(g.map, g.map, g.reduceLeft)
         undo = False
 
@@ -217,7 +208,6 @@ def newGame(size):
         #     v = g.getAllLegalMoves(g.map)
         #     for i in v:
         #         g.moveBoard(i)
-=======
         # move = game.Move(g.map, g.map)
         undo = False
 
@@ -234,9 +224,8 @@ def newGame(size):
             v = g.getAllLegalMoves(g.map)
             for i in v:
                 g.moveBoard(i)
->>>>>>> 6c5c215361e6e6c01e34837efd023cb557d3acf8
-        
-                
+        move = game.Move(g.map, g.map)
+        undo = False
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -361,10 +350,6 @@ if __name__ == "__main__":
     init()
     p.init()
 
-<<<<<<< HEAD
-    newGame(4)
-=======
     # newGame(4)
     a = Game(4)
     print(a.map)
->>>>>>> parent of 2d4999f (:white_check_mark: Added game directory)
