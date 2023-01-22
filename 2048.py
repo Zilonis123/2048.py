@@ -8,6 +8,10 @@ import json
 <<<<<<< HEAD
 from game import game
 from game import ai
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6c5c215361e6e6c01e34837efd023cb557d3acf8
 
 =======
 >>>>>>> parent of 2d4999f (:white_check_mark: Added game directory)
@@ -196,6 +200,7 @@ def newGame(size):
     running = True
     while running:
         # make an empty move
+<<<<<<< HEAD
         move = game.Move(g.map, g.map, g.reduceLeft)
         undo = False
 
@@ -212,6 +217,24 @@ def newGame(size):
         #     v = g.getAllLegalMoves(g.map)
         #     for i in v:
         #         g.moveBoard(i)
+=======
+        # move = game.Move(g.map, g.map)
+        undo = False
+
+        st = time()
+        s, move = ai.getBestMove(g)
+        et = time()
+        elapsed_time = et-st
+        if g.lost != 1:
+            print("Elapsed time " + str(elapsed_time) + "ms with score " + str(s))
+
+        if move != 0:
+            g.moveBoard(move.func)
+        else:
+            v = g.getAllLegalMoves(g.map)
+            for i in v:
+                g.moveBoard(i)
+>>>>>>> 6c5c215361e6e6c01e34837efd023cb557d3acf8
         
                 
         for e in p.event.get():
