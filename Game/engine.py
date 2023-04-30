@@ -36,19 +36,22 @@ class Engine():
         y = random.randint(0, size)
         return (x, y)
 
-    def reduceLineLeft(self, xs): 
-        def aux(acc, y):
-            if len(acc) == 0: acc.append(y)
-            elif acc[len(acc)-1] == y:
-                acc[len(acc)-1] = y * 2
-                acc.append(0)
-            else: acc.append(y)
-            return acc
-
-        res = list(filter(lambda x: x !=0, reduce(aux, filter(lambda x: x!=0, xs), [])))
-        res.extend([0 for i in range(0, len(xs)-len(res))])
+    def reduceLineLeft(self, xs):
         
-        return res
+        result = []
+        prev = None
+        
+        for x in xs:
+            if x != 0:
+                if prev == x:
+                    result[-1] *= 2
+                    prev = None
+                else:
+                    result.append(x)
+                    prev = x
+        result.extend([0] * (len(xs) - len(result)))
+        return result
+
 
     def reduceLineRight(self, xs):
         return self.reduceLineLeft(xs[::-1])[::-1]
