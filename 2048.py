@@ -3,26 +3,20 @@
 import copy
 import random
 from colorama import Fore, Back, init
-from functools import reduce
 import pygame as p
 import json
+from Game import engine
 
 
-def mapReplacement(fun, iter):
-    res = []
-    for i in iter:
-        res.append(fun(i))
-    return res
-
-def calculatePoints(a, b):
+def calculatePoints(game, b):
     s = 0
     tb = b
-    ta = a
+    ta = game.map
     for l in range(3):
         for k in range(len(tb)):
             for i in range(len(ta[k])):
                 if ta[i] == 0:
-                    continue;
+                    continue
                 item = ta[k][i]
                 # print(item)
                 for j in range(len(tb[k])):
@@ -34,50 +28,11 @@ def calculatePoints(a, b):
                             s += item//4
                             tb[k][j] == 0
                             tb[k][j+1] == 0
-                            break;
-        tb = rotate(tb)
-        ta = rotate(ta)
+                            break
+        tb = game.rotate(tb)
+        ta = game.rotate(ta)
 
     return s
-
-def reduceLineLeft(xs): 
-    def aux(acc, y):
-        if len(acc) == 0: acc.append(y)
-        elif acc[len(acc)-1] == y:
-            acc[len(acc)-1] = y * 2
-            acc.append(0)
-        else: acc.append(y)
-        return acc
-    res = list(filter(lambda x: x !=0, reduce(aux, filter(lambda x: x!=0, xs), [])))
-    res.extend([0 for i in range(0, len(xs)-len(res))])
-    
-    return res
-
-def reduceLineRight(xs):
-    return reduceLineLeft(xs[::-1])[::-1]
-
-def reduceLeft(a):
-    
-    return mapReplacement(reduceLineLeft, a)
-
-def reduceRight(a):
-    return mapReplacement(reduceLineRight, a)
-
-def reduceUp(a):
-    return rotate(reduceRight(rotate(a)))
-
-def reduceDown(a):
-    return rotate(reduceLeft(rotate(a)))
-
-def rotate(a):
-    rotatedt = list(reversed(list(zip(*a[::-1]))))
-    # rotated is a tuple right now, but we need it as an array
-    rotated = []
-    for t in rotatedt:
-        a = list(t)
-        rotated.append(a)
-    # print(rotated)
-    return rotated
 
 def prettyPrint(a):
     def color(x):
@@ -105,61 +60,6 @@ def prettyPrint(a):
         text += "\n"
     print(text)
 
-def newEmpty(size):
-    return [[0 for i in range(0, size)] for i in range(0, size)]
-
-def isWin(a):
-    return traverse(a, lambda x: x == 2048)
-
-def isFail(a):
-    def aux(a):
-        for i in a:
-            for j in zip(i, i[1:]):
-                if j[0] == 0 or j[1] == 0 or j[0] == j[1]: return False
-        return True
-    return aux(a) and aux(rotate(a))
-    
-def traverse(a, f):
-    for line in a:
-        for ele in line:
-            if f(ele): return True
-    return False
-
-def randomPoint(size):
-    x = random.randint(0, size)
-    y = random.randint(0, size)
-    return (x, y)
-
-def randomInit(a):
-    seed = [2, 2, 2, 4]
-    done = False
-    while not done:
-        x, y = randomPoint(len(a)-1)
-        v = random.randint(0, len(seed)-1)
-        if a[x][y] == 0:
-            done = True
-    a[x][y] = seed[v]
-
-def randomNum(a):
-    seed = [2, 2, 2, 4]
-    v = random.randint(0, len(seed)-1)
-    done = False
-    while not done:
-        x, y = randomPoint(len(a)-1)
-        if a[x][y] == 0:
-            a[x][y] = seed[v]
-            done = True
-
-    return seed[v]
-
-def makeMap(size):
-    # Generate empty map
-    a = newEmpty(size)
-    # add to random values
-    randomInit(a)
-    randomInit(a)
-    return a
-
 def newGame(size):
     # load the config file
     with open("config.json", "r", encoding="utf-8") as data_file:
@@ -173,7 +73,7 @@ def newGame(size):
     p.display.set_caption("2048")
     clock = p.time.Clock()
 
-    a = makeMap(size)
+    game = engine.Engine(size)
 
     moves = []
     undo = False # keep the track if we undid something in this cycle
@@ -188,68 +88,70 @@ def newGame(size):
     running = True
     while running:
         undo = False
-        b = copy.deepcopy(a)
+        map_copy = copy.deepcopy(game.map)
+
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
 
             if e.type == p.KEYDOWN:
                 if e.key == p.K_w:
-                    a = reduceUp(a)
+                    game.reduceUp(game.map)
                 elif e.key == p.K_s:
-                    a = reduceDown(a)
+                    game.reduceDown(game.map)
                 elif e.key == p.K_a:
-                    a = reduceLeft(a)
+                    game.reduceLeft(game.map)
                 elif e.key == p.K_d:
-                    a = reduceRight(a)            
+                    game.reduceRight(game.map)            
                 elif p.key.get_mods() & p.KMOD_CTRL:
                     if e.key == p.K_r:
                         # reload the config file
                         print("Reloading the configuration file..")
                         with open("config.json", "r", encoding="utf-8") as data_file:
                             config = json.load(data_file).get("config")
-                    elif e.key == p.K_z: 
-                        # undo the move
-                        if len(moves) < 2:
-                            print("Nothing to undo..")
-                            continue;
-                        print("Undo..")
-                        moves.pop()
-                        prev = moves.pop()
-                        info["lost"] = 0
-                        info["won"] = 0
-                        info["score"] = calculatePoints(prev)
-                        a = prev
-                        undo = True
+                    # elif e.key == p.K_z: 
+                    #     # undo the move
+                    #     if len(moves) < 2:
+                    #         print("Nothing to undo..")
+                    #         continue
+                    #     print("Undo..")
+                    #     moves.pop()
+                    #     prev = moves.pop()
+                    #     info["lost"] = 0
+                    #     info["won"] = 0
+                    #     info["score"] = calculatePoints(prev, moves[len(moves)-1].map)
+                    #     game.map = prev
+                    #     undo = True
                     elif e.key == p.K_p:
                         info["lost"] = 0
                         info["won"] = 0
                         info["score"] = 0
                         undo = True # Set undo to true so the game doesn't decide that the user moved
                         moves = []
-                        a = makeMap(size)
+                        game.map = game.makeMap(size)
+
         # Check if the board moved
-        if a != b and not undo:
+        if game.map != map_copy and not undo:
             # if it did add a number
             if config["give-points-for-turn"]:
-                info["score"] += randomNum(a)
+                info["score"] += game.addRandomInt(game.map)
            
-            info["score"] += calculatePoints(a, b)
-            moves.append(a)
+            info["score"] += calculatePoints(game, map_copy)
+            moves.append(game)
 
-        if info["lost"] < 1 and isFail(a):
+        if info["lost"] < 1 and game.isFail():
             info["lost"] += 0.05
             # this will be used to make a cool FADING effect
-        if info["won"] < 1 and isFail(a):
+        if info["won"] < 1 and game.isWin():
             info["won"] += 0.05
 
-        drawScreen(screen, a, config, info)
+        drawScreen(screen, game, config, info)
         clock.tick(MAX_FPS)
         p.display.flip()
 
 def drawScreen(screen, game, c, ginfo):
     screen.fill(c["screen-color"])
-    drawBoard(screen, game, c, ginfo)
+    drawBoard(screen, game.map, c, ginfo)
     drawScore(screen, ginfo)
 
 def drawScore(screen, ginfo):

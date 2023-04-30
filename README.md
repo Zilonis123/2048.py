@@ -29,7 +29,7 @@ When you have started the game it's very straight forward from there.
 
 `a` - Push the tiles left
 
-`ctrl+z` - Undo the previous move
+`ctrl+z` - `Undo the previous move~ currently doesnt work
 
 `ctrl+r` - Reload the configuration file
 
