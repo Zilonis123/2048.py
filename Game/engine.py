@@ -6,6 +6,9 @@ class Engine():
     def __init__(self, size):
         self.size = size
         self.map = self.makeMap(size)
+        
+        self.score = 0
+        self.moves = []
 
     def makeMap(self, size):
         # Generate an empty map
@@ -15,7 +18,42 @@ class Engine():
         self.addRandomInt(m)
         self.addRandomInt(m)
         return m
-    
+
+
+    def calculatePoints(self, b):
+        s = 0
+        tb = b
+        ta = self.map
+        for l in range(3):
+            for k in range(len(tb)):
+                for i in range(len(ta[k])):
+                    if ta[i] == 0:
+                        continue
+                    item = ta[k][i]
+                    # print(item)
+                    for j in range(len(tb[k])):
+                        if tb[k][j] < 2:
+                            continue
+                        if tb[k][j] == item//2:
+                            if len(tb) != j+1 and tb[k][j+1] == item//2:
+                                # add score
+                                s += item//4
+                                tb[k][j] == 0
+                                tb[k][j+1] == 0
+                                break
+            tb = self.rotate(tb)
+            ta = self.rotate(ta)
+
+        self.score += s
+        return s
+        
+    def undoMove(self):
+        if len(self.moves) < 1:
+            return
+
+        previous_move = self.moves.pop()
+        self.score = previous_move.game_score
+        self.map = previous_move.prev_map
 
     def addRandomInt(self, m):
         """
@@ -58,19 +96,27 @@ class Engine():
 
     def reduceLeft(self, m):
         self.map = self._mapReplacement(self.reduceLineLeft, m)
-        return self.map
+        m = Move(self, m)
+        self.moves.append(m)
+        return m
 
     def reduceRight(self, m):
         self.map = self._mapReplacement(self.reduceLineRight, m)
-        return self.map
+        m = Move(self, m)
+        self.moves.append(m)
+        return m
 
     def reduceUp(self, m):
-        self.map = self.rotate(self.reduceRight(self.rotate(m)))
-        return self.map
+        self.map = self.rotate(self.reduceRight(self.rotate(m)).map)
+        m = Move(self, m)
+        self.moves.append(m)
+        return m
 
     def reduceDown(self, m):
-        self.map = self.rotate(self.reduceLeft(self.rotate(m)))
-        return self.map
+        self.map = self.rotate(self.reduceLeft(self.rotate(m)).map)
+        m = Move(self, m)
+        self.moves.append(m)
+        return m
 
     def rotate(self, m):
         """Rotates the map"""
@@ -107,3 +153,19 @@ class Engine():
                     if j[0] == 0 or j[1] == 0 or j[0] == j[1]: return False
             return True
         return aux(self.map) and aux(self.rotate(self.map))
+
+
+class Move():
+    def __init__(self, game, prev_map):
+        self.game = game
+        self.map = game.map
+        self.prev_map = prev_map
+        self.score = -1
+
+        self.game_score = game.score
+
+    def score(self):
+        if self.score: return self.score
+
+        self.score = game.calculatePoints(self.prev_map)
+

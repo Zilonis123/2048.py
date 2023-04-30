@@ -7,33 +7,6 @@ import pygame as p
 import json
 from Game import engine
 
-
-def calculatePoints(game, b):
-    s = 0
-    tb = b
-    ta = game.map
-    for l in range(3):
-        for k in range(len(tb)):
-            for i in range(len(ta[k])):
-                if ta[i] == 0:
-                    continue
-                item = ta[k][i]
-                # print(item)
-                for j in range(len(tb[k])):
-                    if tb[k][j] < 2:
-                        continue
-                    if tb[k][j] == item//2:
-                        if len(tb) != j+1 and tb[k][j+1] == item//2:
-                            # add score
-                            s += item//4
-                            tb[k][j] == 0
-                            tb[k][j+1] == 0
-                            break
-        tb = game.rotate(tb)
-        ta = game.rotate(ta)
-
-    return s
-
 def prettyPrint(a):
     def color(x):
         if x == 0:    return Fore.RESET + Back.RESET
@@ -79,7 +52,6 @@ def newGame(size):
     undo = False # keep the track if we undid something in this cycle
 
     info = {
-        "score": 0,
         "lost": 0,
         "won": 0,
     }
@@ -96,32 +68,23 @@ def newGame(size):
 
             if e.type == p.KEYDOWN:
                 if e.key == p.K_w:
-                    game.reduceUp(game.map)
+                    move = game.reduceUp(game.map)
                 elif e.key == p.K_s:
-                    game.reduceDown(game.map)
+                    move = game.reduceDown(game.map)
                 elif e.key == p.K_a:
-                    game.reduceLeft(game.map)
+                    move = game.reduceLeft(game.map)
                 elif e.key == p.K_d:
-                    game.reduceRight(game.map)            
+                    move = game.reduceRight(game.map)            
                 elif p.key.get_mods() & p.KMOD_CTRL:
                     if e.key == p.K_r:
                         # reload the config file
                         print("Reloading the configuration file..")
                         with open("config.json", "r", encoding="utf-8") as data_file:
                             config = json.load(data_file).get("config")
-                    # elif e.key == p.K_z: 
-                    #     # undo the move
-                    #     if len(moves) < 2:
-                    #         print("Nothing to undo..")
-                    #         continue
-                    #     print("Undo..")
-                    #     moves.pop()
-                    #     prev = moves.pop()
-                    #     info["lost"] = 0
-                    #     info["won"] = 0
-                    #     info["score"] = calculatePoints(prev, moves[len(moves)-1].map)
-                    #     game.map = prev
-                    #     undo = True
+                    elif e.key == p.K_z: 
+                        print("Undoing..")
+                        game.undoMove()
+                        undo = True
                     elif e.key == p.K_p:
                         info["lost"] = 0
                         info["won"] = 0
@@ -133,11 +96,13 @@ def newGame(size):
         # Check if the board moved
         if game.map != map_copy and not undo:
             # if it did add a number
+            tile_added = game.addRandomInt(game.map)
+
             if config["give-points-for-turn"]:
-                info["score"] += game.addRandomInt(game.map)
+                game.score += tile_added
            
-            info["score"] += calculatePoints(game, map_copy)
-            moves.append(game)
+            game.calculatePoints(map_copy)
+            
 
         if info["lost"] < 1 and game.isFail():
             info["lost"] += 0.05
@@ -152,14 +117,14 @@ def newGame(size):
 def drawScreen(screen, game, c, ginfo):
     screen.fill(c["screen-color"])
     drawBoard(screen, game.map, c, ginfo)
-    drawScore(screen, ginfo)
+    drawScore(screen, game)
 
-def drawScore(screen, ginfo):
+def drawScore(screen, game):
     font = p.font.Font('freesansbold.ttf', 32)
 
     # rect = p.Rect((0, 0), (150, 100))
 
-    text = font.render("Score: " + str(ginfo["score"]), True, p.Color("black"), p.Color("white"))
+    text = font.render("Score: " + str(game.score), True, p.Color("black"), p.Color("white"))
     textRect = text.get_rect()
     # textRect.center = rect.center
 
