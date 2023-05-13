@@ -1,7 +1,6 @@
 #coding=utf8
 
 import copy
-import random
 import pygame as p
 import json
 from Game import engine
@@ -40,14 +39,10 @@ def newGame(size):
                 running = False
 
             if e.type == p.KEYDOWN:
-                if e.key == p.K_w:
-                    move = game.reduceUp(game.map)
-                elif e.key == p.K_s:
-                    move = game.reduceDown(game.map)
-                elif e.key == p.K_a:
-                    move = game.reduceLeft(game.map)
-                elif e.key == p.K_d:
-                    move = game.reduceRight(game.map)            
+                if e.key == p.K_w:   move = game.reduceUp(game.map)
+                elif e.key == p.K_s: move = game.reduceDown(game.map)
+                elif e.key == p.K_a: move = game.reduceLeft(game.map)
+                elif e.key == p.K_d: move = game.reduceRight(game.map)            
                 elif p.key.get_mods() & p.KMOD_CTRL:
                     if e.key == p.K_r:
                         # reload the config file
@@ -62,7 +57,7 @@ def newGame(size):
                         info["lost"] = 0
                         info["won"] = 0
                         info["score"] = 0
-                        undo = True # Set undo to true so the game doesn't decide that the user moved
+                        undo = True # Set undo to true so the game doesn't decide that the board moved
                         moves = []
                         game.map = game.makeMap(size)
 
@@ -79,7 +74,6 @@ def newGame(size):
 
         if info["lost"] < 1 and game.isFail():
             info["lost"] += 0.05
-            # this will be used to make a cool FADING effect
         if info["won"] < 1 and game.isWin():
             info["won"] += 0.05
 
@@ -109,6 +103,7 @@ def drawBoard(screen, gameMap, config, ginfo):
     h = config["HEIGHT"]
 
     r_border_radius = config["Rect-Border-Radius"]
+    bgoffset = config["background-offset"]
 
     size = len(gameMap)
     MIDDLE = (w/2, h/2)
@@ -119,9 +114,8 @@ def drawBoard(screen, gameMap, config, ginfo):
     # width and height of the background
     width = w-bgSize
     height = h-bgSize
-    loc = (MIDDLE[0]-width/2, h-height)
+    loc = (MIDDLE[0]-width/2, h-height-bgoffset)
 
-    bgoffset = config["background-offset"]
     rectLocation = (loc[0]-bgoffset, loc[1]-bgoffset)
     bgRect = p.Rect(rectLocation, (width+bgoffset*2, height+bgoffset*2))
     if config["show-tile-background"]:
@@ -182,7 +176,6 @@ def drawBoard(screen, gameMap, config, ginfo):
         
     
 if __name__ == "__main__":
-    init()
     p.init()
 
     newGame(4)
