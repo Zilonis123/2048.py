@@ -4,7 +4,10 @@
     "WIDTH": 512,
     "screen-color": "black",
     "show-tile-background": true,
+    "background-offset": 15,
+    "background-size": 100, 
     "give-points-for-turn": false,
+    "Rect-Border-Radius": 10,
     "colors": {
       "0": {
         "background": "gray",

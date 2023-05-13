@@ -8,7 +8,7 @@ Establish the width and height of the game screen. These variables shouldn't be 
 What color is the game's background accepts text, hexcode and rgb values (text is not encouraged)
 
 ### show-tile-background
-Should the game tiles have a background? Boolean
+Should the game tiles have a background?
 
 ### give-points-for-turn
 If true this setting will give the player "score" each time a new tile is created (will give 2 or 4 depending what tile is made)

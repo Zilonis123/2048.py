@@ -130,18 +130,29 @@ def drawScore(screen, game):
 
     screen.blit(text, textRect)
 
-def drawBoard(screen, game, config, ginfo):
+def drawBoard(screen, gameMap, config, ginfo):
+    # width and height of the screen
     w = config["WIDTH"]
     h = config["HEIGHT"]
-    size = len(game)
+
+    r_border_radius = config["Rect-Border-Radius"]
+
+    size = len(gameMap)
     MIDDLE = (w/2, h/2)
+
     # draw the background
-    width = w-100
-    height = h-100
+    bgSize = config["background-size"]
+
+    # width and height of the background
+    width = w-bgSize
+    height = h-bgSize
     loc = (MIDDLE[0]-width/2, h-height)
-    r = p.Rect(loc, (width, height))
+
+    bgoffset = config["background-offset"]
+    rectLocation = (loc[0]-bgoffset, loc[1]-bgoffset)
+    bgRect = p.Rect(rectLocation, (width+bgoffset*2, height+bgoffset*2))
     if config["show-tile-background"]:
-        p.draw.rect(screen, p.Color("Orange"), r)
+        p.draw.rect(screen, p.Color("Orange"), bgRect, border_radius=r_border_radius)
 
     # font
     font = p.font.Font('freesansbold.ttf', 32)
@@ -151,18 +162,23 @@ def drawBoard(screen, game, config, ginfo):
     bheight = (height-(gap*3))/size
     for i in range(size):
         for j in range(size):
-            l = (j*bwidth+loc[0]+(gap*j), i*bheight+loc[1]+(gap*i))
+            # What tile are we on?
+            tile = gameMap[i][j]
+
+            l = (j*bwidth+loc[0]+(gap*j), i*bheight+loc[1]+(gap*i)) # (x, y)
             rect = p.Rect(l, (bwidth, bheight))
 
             # determine the color
-            color = config["colors"][str(game[i][j])]
-            background = p.Color(color["background"])
+            color = config["colors"][str(tile)]
+            backgroundColor = p.Color(color["background"])
 
-            p.draw.rect(screen, background, rect, border_radius=15)
-            if game[i][j] != 0:
+            # Draw the tile
+            p.draw.rect(screen, backgroundColor, rect, border_radius=r_border_radius)
+
+            if tile != 0:
                 fontclr = color["font"]
 
-                text = font.render(str(game[i][j]), True, fontclr, background)
+                text = font.render(str(tile), True, fontclr, backgroundColor)
 
                 textRect = text.get_rect()
                 textRect.center = rect.center
@@ -173,12 +189,12 @@ def drawBoard(screen, game, config, ginfo):
         # text
         text = ""
 
-        s = p.Surface((width, height))  # the size of your rect
+        s = p.Surface((width, height))
         if ginfo["lost"] > 0:
-            s.set_alpha(128 * ginfo["lost"])               # alpha level
+            s.set_alpha(128 * ginfo["lost"]) # alpha level
             text = "Game Over!"
         else:
-            s.set_alpha(128 * ginfo["won"])                # alpha level
+            s.set_alpha(128 * ginfo["won"]) # alpha level 
             text = "You won!"
         s.fill((255,255,255))           # this fills the entire surface
         screen.blit(s, loc)    # (0,0) are the top-left coordinates
@@ -187,7 +203,7 @@ def drawBoard(screen, game, config, ginfo):
         textObj = f.render(text, True, (0, 0, 0), (255, 255, 255))
         
         textRect = textObj.get_rect()
-        textRect.center = r.center
+        textRect.center = bgRect.center
 
         screen.blit(textObj, textRect)
         
