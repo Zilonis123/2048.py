@@ -3,7 +3,7 @@
 import copy
 import pygame as p
 import json
-from Game import engine
+from Game import engine, ai
 
 def newGame(size):
     # load the config file
@@ -56,10 +56,15 @@ def newGame(size):
                     elif e.key == p.K_p:
                         info["lost"] = 0
                         info["won"] = 0
-                        info["score"] = 0
                         undo = True # Set undo to true so the game doesn't decide that the board moved
                         moves = []
                         game.map = game.makeMap(size)
+                        game.score = 0
+                    elif e.key == p.K_i:
+                        # ai move
+                        if info["lost"] < 0.01:
+                            move = ai.getBestMoveDepth(game)
+                            move.executedBy(game.map)
 
         # Check if the board moved
         if game.map != map_copy and not undo:

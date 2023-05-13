@@ -34,6 +34,8 @@ When you have started the game it's very straight forward from there.
 `ctrl+r` - Reload the configuration file
 
 `ctrl+p` - Restart the game
+
+`ctrl+i` - An "AI" makes a move for you. Note that the "AI" is in no way good it avarages around 1000 points per game, but that's without using your brain.
 ## How to customize the "feel" of the game.
 To customize the game you have to open `config.json`
 When you have opened the file you can change the colors of the tiles and much more.

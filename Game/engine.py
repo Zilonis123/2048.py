@@ -1,6 +1,6 @@
 from functools import reduce
 import random
-
+import copy
 
 class Engine():
     def __init__(self, size):
@@ -18,6 +18,18 @@ class Engine():
         self.addRandomInt(m)
         self.addRandomInt(m)
         return m
+
+    def getPossibleMoves(self):
+        moves = []
+        functions = [self.reduceDown, self.reduceLeft, self.reduceUp, self.reduceRight]
+
+        for f in functions:
+            move = f(self.map)
+            if move.map != move.prev_map:
+                moves.append(move)
+
+            self.undoMove()
+        return moves
 
 
     def calculatePoints(self, b):
@@ -96,25 +108,25 @@ class Engine():
 
     def reduceLeft(self, m):
         self.map = self._mapReplacement(self.reduceLineLeft, m)
-        m = Move(self, m)
+        m = Move(self, m, self.reduceLeft)
         self.moves.append(m)
         return m
 
     def reduceRight(self, m):
         self.map = self._mapReplacement(self.reduceLineRight, m)
-        m = Move(self, m)
+        m = Move(self, m, self.reduceRight)
         self.moves.append(m)
         return m
 
     def reduceUp(self, m):
         self.map = self.rotate(self.reduceRight(self.rotate(m)).map)
-        m = Move(self, m)
+        m = Move(self, m, self.reduceUp)
         self.moves.append(m)
         return m
 
     def reduceDown(self, m):
         self.map = self.rotate(self.reduceLeft(self.rotate(m)).map)
-        m = Move(self, m)
+        m = Move(self, m, self.reduceDown)
         self.moves.append(m)
         return m
 
@@ -156,13 +168,15 @@ class Engine():
 
 
 class Move():
-    def __init__(self, game, prev_map):
+    def __init__(self, game, prev_map, fu):
         self.game = game
         self.map = game.map
         self.prev_map = prev_map
         self.score = -1
 
         self.game_score = game.score
+
+        self.executedBy = fu
 
     def score(self):
         if self.score: return self.score
