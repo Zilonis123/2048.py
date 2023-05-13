@@ -2,36 +2,9 @@
 
 import copy
 import random
-from colorama import Fore, Back, init
 import pygame as p
 import json
 from Game import engine
-
-def prettyPrint(a):
-    def color(x):
-        if x == 0:    return Fore.RESET + Back.RESET
-        if x == 2:    return Fore.RED + Back.RESET
-        if x == 4:    return Fore.GREEN + Back.RESET
-        if x == 8:    return Fore.YELLOW + Back.RESET
-        if x == 16:   return Fore.BLUE + Back.RESET
-        if x == 32:   return Fore.MAGENTA + Back.RESET
-        if x == 64:   return Fore.CYAN + Back.RESET
-        if x == 128:  return Fore.RED + Back.BLACK
-        if x == 256:  return Fore.GREEN + Back.BLACK
-        if x == 512:  return Fore.YELLOW + Back.BLACK
-        if x == 1024: return Fore.BLUE + Back.BLACK
-        if x == 2048: return Fore.MAGENTA + Back.BLACK
-        if x == 4096: return Fore.CYAN + Back.BLACK
-        if x == 8192: return Fore.WHITE + Back.BLACK
-
-    # print out the game
-
-    text = ""
-    for i in a:
-        for j in i:
-            text += color(j) + ("%4d" % j) + Fore.RESET + Back.RESET
-        text += "\n"
-    print(text)
 
 def newGame(size):
     # load the config file
