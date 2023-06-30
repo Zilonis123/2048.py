@@ -3,7 +3,7 @@
 2048 is a 4x4 tile based sliding game where the goal is to get one tile to the number 2048. When pressing a button corresponding to a side for example "w" all the tiles move up and if there are the same number on two tiles next to eachother they join into one, but explaining is not the best way to play a game so.. let's begin
 
 ## Downloading
-You have to have [python](https://python.org) installed on your local machine for this game to work. (There might be an executable file later)
+You have to have [python](https://python.org) installed on your local machine for this game to work.
 
 Clone the repository
 ```git
@@ -19,7 +19,8 @@ to run it just type
 python 2048.py
 ```
 ## How to play?
-When you have started the game it's very straight forward from there.
+using the controls "w", "d", "a" and "s" the goal is to merge the tiles until you get the 2048 tile.
+
 ### Controlls
 `w` - Push the tiles up
 

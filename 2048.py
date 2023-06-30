@@ -5,10 +5,27 @@ import pygame as p
 import json
 from Game import engine, ai
 
+# Function for creating an executable file.
+import sys
+import os
+
+def resource_path(relative_path):
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
+def reloadConfig():  
+    with open(resource_path("config.json"), "r", encoding="utf-8") as data_file:
+        return json.load(data_file).get("config")
+
 def newGame(size):
     # load the config file
-    with open("config.json", "r", encoding="utf-8") as data_file:
-        config = json.load(data_file).get("config")
+    config = reloadConfig()
 
     WIDTH = config["WIDTH"]
     HEIGHT = config["HEIGHT"]
@@ -47,8 +64,7 @@ def newGame(size):
                     if e.key == p.K_r:
                         # reload the config file
                         print("Reloading the configuration file..")
-                        with open("config.json", "r", encoding="utf-8") as data_file:
-                            config = json.load(data_file).get("config")
+                        config = reloadConfig()
                     elif e.key == p.K_z: 
                         print("Undoing..")
                         game.undoMove()
