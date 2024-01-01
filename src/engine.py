@@ -5,7 +5,7 @@ import copy
 class Engine():
     def __init__(self, size):
         self.size = size
-        self.map = self.makeMap(size)
+        self.matrix = self.makeMap(size)
         
         self.score = 0
         self.moves = []
@@ -24,7 +24,7 @@ class Engine():
         functions = [self.reduceDown, self.reduceLeft, self.reduceUp, self.reduceRight]
 
         for f in functions:
-            move = f(self.map)
+            move = f(self.matrix)
             if move.map != move.prev_map:
                 moves.append(move)
 
@@ -35,7 +35,7 @@ class Engine():
     def calculatePoints(self, b):
         s = 0
         tb = b
-        ta = self.map
+        ta = self.matrix
         for l in range(3):
             for k in range(len(tb)):
                 for i in range(len(ta[k])):
@@ -65,7 +65,7 @@ class Engine():
 
         previous_move = self.moves.pop()
         self.score = previous_move.game_score
-        self.map = previous_move.prev_map
+        self.matrix = previous_move.prev_map
 
     def addRandomInt(self, m):
         """
@@ -107,25 +107,25 @@ class Engine():
         return self.reduceLineLeft(xs[::-1])[::-1]
 
     def reduceLeft(self, m):
-        self.map = self._mapReplacement(self.reduceLineLeft, m)
+        self.matrix = self._mapReplacement(self.reduceLineLeft, m)
         m = Move(self, m, self.reduceLeft)
         self.moves.append(m)
         return m
 
     def reduceRight(self, m):
-        self.map = self._mapReplacement(self.reduceLineRight, m)
+        self.matrix = self._mapReplacement(self.reduceLineRight, m)
         m = Move(self, m, self.reduceRight)
         self.moves.append(m)
         return m
 
     def reduceUp(self, m):
-        self.map = self.rotate(self.reduceRight(self.rotate(m)).map)
+        self.matrix = self.rotate(self.reduceRight(self.rotate(m)).map)
         m = Move(self, m, self.reduceUp)
         self.moves.append(m)
         return m
 
     def reduceDown(self, m):
-        self.map = self.rotate(self.reduceLeft(self.rotate(m)).map)
+        self.matrix = self.rotate(self.reduceLeft(self.rotate(m)).map)
         m = Move(self, m, self.reduceDown)
         self.moves.append(m)
         return m
@@ -156,7 +156,7 @@ class Engine():
         return False
 
     def isWin(self):
-        return self._traverse(self.map, lambda x: x == 2048)
+        return self._traverse(self.matrix, lambda x: x == 2048)
 
     def isFail(self):
         def aux(m):
@@ -164,13 +164,13 @@ class Engine():
                 for j in zip(i, i[1:]):
                     if j[0] == 0 or j[1] == 0 or j[0] == j[1]: return False
             return True
-        return aux(self.map) and aux(self.rotate(self.map))
+        return aux(self.matrix) and aux(self.rotate(self.matrix))
 
 
 class Move():
     def __init__(self, game, prev_map, fu):
         self.game = game
-        self.map = game.map
+        self.matrix = game.map
         self.prev_map = prev_map
         self.score = -1
 

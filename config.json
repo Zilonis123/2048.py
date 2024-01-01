@@ -3,10 +3,10 @@
     "RES": [512, 512],
     "screen-color": "black",
     "show-tile-background": true,
-    "background-offset": 15,
-    "background-size": 300, 
+    "tile-margin": 6,
+    "tile-size": 50, 
     "give-points-for-turn": false,
-    "Rect-Border-Radius": 10,
+    "tile-border-radius": 10,
     "colors": {
       "0": {
         "background": "gray",

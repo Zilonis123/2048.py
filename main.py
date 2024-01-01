@@ -49,6 +49,8 @@ class SoftwareRenderer():
         # elif key == p.K_s: 
         # elif key == p.K_a: 
         # elif key == p.K_d: 
+        if key == p.K_r:
+            self.reloadConfig()
         pass
 
     def reloadConfig(self) -> dict:  
