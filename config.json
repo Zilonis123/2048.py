@@ -1,11 +1,10 @@
 {
   "config": {
-    "HEIGHT": 512,
-    "WIDTH": 512,
+    "RES": [512, 512],
     "screen-color": "black",
     "show-tile-background": true,
     "background-offset": 15,
-    "background-size": 100, 
+    "background-size": 300, 
     "give-points-for-turn": false,
     "Rect-Border-Radius": 10,
     "colors": {

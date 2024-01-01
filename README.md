@@ -16,7 +16,7 @@ pip install -r requirements.txt
 There you go you have succsesfully installed "2048 gui version"
 to run it just type
 ```sh
-python 2048.py
+python main.py
 ```
 ## How to play?
 using the controls "w", "d", "a" and "s" the goal is to merge the tiles until you get the 2048 tile.
